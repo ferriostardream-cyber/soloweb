@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Scrapbook Demo</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100%;
+            color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .toolbar {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4a90e2, #667eea);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #6c757d, #495057);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+        }
+
+        .scrapbook-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            min-height: 600px;
+        }
+
+        .page-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 1rem;
+        }
+
+        .page-tab {
+            background: #f8f9fa;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px 25px 0 0;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .page-tab.active {
+            background: #4a90e2;
+            color: white;
+        }
+
+        .page-tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+
+        .scrapbook-page {
+            display: none;
+            min-height: 500px;
+            position: relative;
+        }
+
+        .scrapbook-page.active {
+            display: block;
+        }
+
+        .memory-item {
+            background: #f8f9fa;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .memory-item:hover {
+            border-color: #4a90e2;
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.1);
+        }
+
+        .memory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .memory-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #4a90e2;
+            margin: 0;
+        }
+
+        .memory-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .memory-content {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .memory-photo {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(45deg, #4a90e2, #667eea);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            overflow: hidden;
+        }
+
+        .memory-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .memory-photo.no-image {
+            background: linear-gradient(45deg, #e9ecef, #dee2e6);
+            color: #6c757d;
+        }
+
+        .memory-photo:hover {
+            transform: scale(1.05);
+        }
+
+        .memory-text {
+            flex: 1;
+        }
+
+        .memory-description {
+            color: #666;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .memory-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .empty-page {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+
+        .empty-page h3 {
+            color: #4a90e2;
+            margin-bottom: 1rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+
+        .emoji-picker {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .emoji-option {
+            background: #f8f9fa;
+            border: 2px solid transparent;
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .emoji-option:hover,
+        .emoji-option.selected {
+            border-color: #4a90e2;
+            background: #e3f2fd;
+        }
+
+        .stats {
+            background: linear-gradient(45deg, #4a90e2, #667eea);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Color Customizer Styles */
+        .color-section {
+            margin-bottom: 2rem;
+        }
+
+        .color-section h3 {
+            color: #4a90e2;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .color-presets {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .preset-option {
+            text-align: center;
+            cursor: pointer;
+            padding: 1rem;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .preset-option:hover,
+        .preset-option.active {
+            border-color: #4a90e2;
+            background: #f8f9fa;
+        }
+
+        .preset-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .preset-option span {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .custom-colors {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .color-input-group {
+            text-align: center;
+        }
+
+        .color-input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .color-input-group input[type="color"] {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            margin: 0 auto;
+            display: block;
+        }
+
+        /* Notification Animations */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Get in Touch Section */
+        .get-in-touch {
+            background: white;
+            padding: 4rem 0;
+            margin-top: 2rem;
+        }
+
+        .contact-content {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .contact-content h2 {
+            font-size: 2.5rem;
+            color: #4a90e2;
+            margin-bottom: 1rem;
+        }
+
+        .contact-content > p {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .contact-card {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(74, 144, 226, 0.1);
+            border-color: #4a90e2;
+        }
+
+        .contact-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-card h3 {
+            color: #4a90e2;
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .contact-card p {
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .contact-btn {
+            background: linear-gradient(45deg, #4a90e2, #667eea);
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .contact-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            background: #4a90e2;
+            color: white;
+            border-radius: 50%;
+            text-decoration: none;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        /* Footer Styles */
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 3rem 0 1rem;
+            margin-top: 2rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            color: #4a90e2;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .footer-section p {
+            color: #bdc3c7;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section ul li a {
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section ul li a:hover {
+            color: #4a90e2;
+        }
+
+        .newsletter {
+            margin-top: 1rem;
+        }
+
+        .newsletter-btn {
+            background: linear-gradient(45deg, #4a90e2, #667eea);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #34495e;
+            padding-top: 2rem;
+            text-align: center;
+        }
+
+        .footer-bottom p {
+            color: #bdc3c7;
+            margin: 0.5rem 0;
+        }
+
+        .footer-note {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .memory-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .memory-photo {
+                margin: 0 auto;
+            }
+
+            .page-tabs {
+                flex-wrap: wrap;
+            }
+
+            .color-presets {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .custom-colors {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-content h2 {
+                font-size: 2rem;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                text-align: center;
+            }
+
+            .social-links {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 My Custom Scrapbook</h1>
+            <p>Create, customize, and preserve your precious memories</p>
+        </div>
+
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number" id="totalPages">3</span>
+                    <span class="stat-label">Pages</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="totalMemories">5</span>
+                    <span class="stat-label">Memories</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="lastUpdated">Today</span>
+                    <span class="stat-label">Last Updated</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <button class="btn" onclick="openAddMemoryModal()">➕ Add Memory</button>
+            <button class="btn" onclick="addNewPage()">📄 New Page</button>
+            <button class="btn" onclick="openColorCustomizer()">🎨 Customize Colors</button>
+            <button class="btn btn-secondary" onclick="exportScrapbook()">💾 Save Scrapbook</button>
+            <button class="btn btn-secondary" onclick="importScrapbook()">📂 Load Scrapbook</button>
+            <button class="btn btn-danger" onclick="clearAllPages()">🗑️ Clear All</button>
+        </div>
+
+        <div class="scrapbook-container">
+            <div class="page-tabs" id="pageTabs">
+                <button class="page-tab active" onclick="switchPage(0)">📖 Page 1</button>
+                <button class="page-tab" onclick="switchPage(1)">🌟 Page 2</button>
+                <button class="page-tab" onclick="switchPage(2)">💝 Page 3</button>
+            </div>
+
+            <div class="scrapbook-page active" id="page-0">
+                <div class="memory-item">
+                    <div class="memory-actions">
+                        <button class="action-btn" onclick="editMemory(0, 0)" title="Edit">✏️</button>
+                        <button class="action-btn" onclick="deleteMemory(0, 0)" title="Delete">🗑️</button>
+                    </div>
+                    <div class="memory-header">
+                        <h3 class="memory-title">My First Adventure</h3>
+                        <span class="memory-date">December 2024</span>
+                    </div>
+                    <div class="memory-content">
+                        <div class="memory-photo">🏔️</div>
+                        <div class="memory-text">
+                            <p class="memory-description">Started my scrapbook journey with this amazing mountain hike. The view from the top was absolutely breathtaking and reminded me why I love documenting these special moments.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="memory-item">
+                    <div class="memory-actions">
+                        <button class="action-btn" onclick="editMemory(0, 1)" title="Edit">✏️</button>
+                        <button class="action-btn" onclick="deleteMemory(0, 1)" title="Delete">🗑️</button>
+                    </div>
+                    <div class="memory-header">
+                        <h3 class="memory-title">Learning Something New</h3>
+                        <span class="memory-date">December 2024</span>
+                    </div>
+                    <div class="memory-content">
+                        <div class="memory-photo">📚</div>
+                        <div class="memory-text">
+                            <p class="memory-description">Decided to learn web development and created this interactive scrapbook as my first project. It's amazing how technology can help us preserve and share our memories in creative ways.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scrapbook-page" id="page-1">
+                <div class="memory-item">
+                    <div class="memory-actions">
+                        <button class="action-btn" onclick="editMemory(1, 0)" title="Edit">✏️</button>
+                        <button class="action-btn" onclick="deleteMemory(1, 0)" title="Delete">🗑️</button>
+                    </div>
+                    <div class="memory-header">
+                        <h3 class="memory-title">Creative Expression</h3>
+                        <span class="memory-date">December 2024</span>
+                    </div>
+                    <div class="memory-content">
+                        <div class="memory-photo">🎨</div>
+                        <div class="memory-text">
+                            <p class="memory-description">Exploring digital art and design has opened up new ways to express creativity. Each piece tells a story and captures a moment of inspiration that I want to remember forever.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scrapbook-page" id="page-2">
+                <div class="memory-item">
+                    <div class="memory-actions">
+                        <button class="action-btn" onclick="editMemory(2, 0)" title="Edit">✏️</button>
+                        <button class="action-btn" onclick="deleteMemory(2, 0)" title="Delete">🗑️</button>
+                    </div>
+                    <div class="memory-header">
+                        <h3 class="memory-title">Beach Day Bliss</h3>
+                        <span class="memory-date">December 2024</span>
+                    </div>
+                    <div class="memory-content">
+                        <div class="memory-photo">🏖️</div>
+                        <div class="memory-text">
+                            <p class="memory-description">Perfect day at the beach with friends. The sound of waves, warm sand, and endless laughter created memories that will last a lifetime. Sometimes the simplest moments are the most precious.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="memory-item">
+                    <div class="memory-actions">
+                        <button class="action-btn" onclick="editMemory(2, 1)" title="Edit">✏️</button>
+                        <button class="action-btn" onclick="deleteMemory(2, 1)" title="Delete">🗑️</button>
+                    </div>
+                    <div class="memory-header">
+                        <h3 class="memory-title">Family Gathering</h3>
+                        <span class="memory-date">December 2024</span>
+                    </div>
+                    <div class="memory-content">
+                        <div class="memory-photo">👨‍👩‍👧‍👦</div>
+                        <div class="memory-text">
+                            <p class="memory-description">Annual family reunion filled with stories, laughter, and delicious food. These gatherings remind me of what truly matters - the people we love and the bonds that connect us across time and distance.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Get in Touch Section -->
+    <div class="get-in-touch">
+        <div class="container">
+            <div class="contact-content">
+                <h2>💌 Get in Touch</h2>
+                <p>Have questions about your scrapbook or need help preserving your memories? We'd love to hear from you!</p>
+                
+                <div class="contact-grid">
+                    <div class="contact-card">
+                        <div class="contact-icon">📧</div>
+                        <h3>Email Us</h3>
+                        <p>hello@scrapbook.com</p>
+                        <a href="mailto:hello@scrapbook.com" class="btn contact-btn" target="_blank" rel="noopener noreferrer">Send Email</a>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <div class="contact-icon">💬</div>
+                        <h3>Live Chat</h3>
+                        <p>Available 24/7 for support</p>
+                        <button class="btn contact-btn" onclick="openLiveChat()">Start Chat</button>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <div class="contact-icon">📱</div>
+                        <h3>Follow Us</h3>
+                        <p>Stay updated with tips & inspiration</p>
+                        <div class="social-links">
+                            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" title="Twitter">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                                </svg>
+                            </a>
+                            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" title="Instagram">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                </svg>
+                            </a>
+                            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" title="Facebook">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>🎨 Scrapbook</h3>
+                    <p>Preserve your precious memories with our interactive digital scrapbook. Create, customize, and cherish your moments forever.</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Features</h3>
+                    <ul>
+                        <li><a href="#" onclick="openAddMemoryModal()">Add Memories</a></li>
+                        <li><a href="#" onclick="openColorCustomizer()">Customize Colors</a></li>
+                        <li><a href="#" onclick="exportScrapbook()">Save & Export</a></li>
+                        <li><a href="#" onclick="addNewPage()">Create Pages</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="#" onclick="showHelpModal()">Help Center</a></li>
+                        <li><a href="mailto:support@scrapbook.com" target="_blank" rel="noopener noreferrer">Contact Support</a></li>
+                        <li><a href="#" onclick="showPrivacyModal()">Privacy Policy</a></li>
+                        <li><a href="#" onclick="showTermsModal()">Terms of Service</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <div class="social-links">
+                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" title="Twitter">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                            </svg>
+                        </a>
+                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" title="Instagram">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </a>
+                        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" title="Facebook">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                        </a>
+                        <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" title="YouTube">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                        </a>
+                    </div>
+                    <p class="newsletter">
+                        <strong>Stay Updated</strong><br>
+                        Get tips for preserving memories
+                    </p>
+                    <button class="btn newsletter-btn" onclick="subscribeNewsletter()">📬 Subscribe</button>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 Interactive Scrapbook. Created by [Stella Mariz P. Garsula] with ❤️ for preserving memories.</p>
+                <p class="footer-note">Your memories are stored locally in your browser and are completely private.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Add/Edit Memory Modal -->
+    <div id="memoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Add New Memory</h2>
+            <form onsubmit="saveMemory(event)">
+                <div class="form-group">
+                    <label for="memoryTitle">Memory Title</label>
+                    <input type="text" id="memoryTitle" required placeholder="Give your memory a title...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="memoryDate">Date</label>
+                    <input type="text" id="memoryDate" placeholder="e.g., December 2024, Summer 2023...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="memoryImage">Upload Image</label>
+                    <input type="file" id="memoryImage" accept="image/*" onchange="handleImageUpload(event)" style="margin-bottom: 1rem;">
+                    <div class="image-preview" id="imagePreview" style="display: none;">
+                        <img id="previewImg" style="max-width: 200px; max-height: 200px; border-radius: 10px; object-fit: cover;">
+                        <button type="button" onclick="removeImage()" style="display: block; margin-top: 0.5rem; background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">Remove Image</button>
+                    </div>
+                    <input type="hidden" id="memoryImageData">
+                </div>
+                
+                <div class="form-group">
+                    <label for="memoryDescription">Description</label>
+                    <textarea id="memoryDescription" rows="4" required placeholder="Describe this special memory..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="memoryPage">Add to Page</label>
+                    <select id="memoryPage">
+                        <option value="0">Page 1</option>
+                        <option value="1">Page 2</option>
+                        <option value="2">Page 3</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn">💾 Save Memory</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Color Customizer Modal -->
+    <div id="colorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('colorModal')">&times;</span>
+            <h2>🎨 Customize Colors</h2>
+            
+            <div class="color-section">
+                <h3>Background Theme</h3>
+                <div class="color-presets">
+                    <div class="preset-option active" onclick="applyPreset('blue')" data-preset="blue">
+                        <div class="preset-preview" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                        <span>Ocean Blue</span>
+                    </div>
+                    <div class="preset-option" onclick="applyPreset('purple')" data-preset="purple">
+                        <div class="preset-preview" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"></div>
+                        <span>Sunset Purple</span>
+                    </div>
+                    <div class="preset-option" onclick="applyPreset('green')" data-preset="green">
+                        <div class="preset-preview" style="background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);"></div>
+                        <span>Nature Green</span>
+                    </div>
+                    <div class="preset-option" onclick="applyPreset('orange')" data-preset="orange">
+                        <div class="preset-preview" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);"></div>
+                        <span>Warm Orange</span>
+                    </div>
+                    <div class="preset-option" onclick="applyPreset('pink')" data-preset="pink">
+                        <div class="preset-preview" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);"></div>
+                        <span>Soft Pink</span>
+                    </div>
+                    <div class="preset-option" onclick="applyPreset('dark')" data-preset="dark">
+                        <div class="preset-preview" style="background: linear-gradient(135deg, #434343 0%, #000000 100%);"></div>
+                        <span>Dark Mode</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="color-section">
+                <h3>Custom Colors</h3>
+                <div class="custom-colors">
+                    <div class="color-input-group">
+                        <label for="primaryColor">Primary Color</label>
+                        <input type="color" id="primaryColor" value="#4a90e2" onchange="updateCustomColors()">
+                    </div>
+                    <div class="color-input-group">
+                        <label for="secondaryColor">Secondary Color</label>
+                        <input type="color" id="secondaryColor" value="#667eea" onchange="updateCustomColors()">
+                    </div>
+                    <div class="color-input-group">
+                        <label for="accentColor">Accent Color</label>
+                        <input type="color" id="accentColor" value="#764ba2" onchange="updateCustomColors()">
+                    </div>
+                </div>
+                <button class="btn" onclick="applyCustomColors()">Apply Custom Colors</button>
+            </div>
+
+            <div class="color-section">
+                <button class="btn btn-secondary" onclick="resetToDefault()">🔄 Reset to Default</button>
+                <button class="btn" onclick="saveColorTheme()">💾 Save Theme</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let scrapbookData = {
+            pages: [
+                {
+                    name: "📖 Page 1",
+                    memories: [
+                        {
+                            title: "My First Adventure",
+                            date: "December 2024",
+                            emoji: "🏔️",
+                            description: "Started my scrapbook journey with this amazing mountain hike. The view from the top was absolutely breathtaking and reminded me why I love documenting these special moments."
+                        },
+                        {
+                            title: "Learning Something New",
+                            date: "December 2024",
+                            emoji: "📚",
+                            description: "Decided to learn web development and created this interactive scrapbook as my first project. It's amazing how technology can help us preserve and share our memories in creative ways."
+                        }
+                    ]
+                },
+                {
+                    name: "🌟 Page 2",
+                    memories: [
+                        {
+                            title: "Creative Expression",
+                            date: "December 2024",
+                            emoji: "🎨",
+                            description: "Exploring digital art and design has opened up new ways to express creativity. Each piece tells a story and captures a moment of inspiration that I want to remember forever."
+                        }
+                    ]
+                },
+                {
+                    name: "💝 Page 3",
+                    memories: [
+                        {
+                            title: "Beach Day Bliss",
+                            date: "December 2024",
+                            emoji: "🏖️",
+                            description: "Perfect day at the beach with friends. The sound of waves, warm sand, and endless laughter created memories that will last a lifetime. Sometimes the simplest moments are the most precious."
+                        },
+                        {
+                            title: "Family Gathering",
+                            date: "December 2024",
+                            emoji: "👨‍👩‍👧‍👦",
+                            description: "Annual family reunion filled with stories, laughter, and delicious food. These gatherings remind me of what truly matters - the people we love and the bonds that connect us across time and distance."
+                        }
+                    ]
+                }
+            ]
+        };
+
+        let currentPage = 0;
+        let editingMemory = null;
+
+        function switchPage(pageIndex) {
+            // Update active tab
+            document.querySelectorAll('.page-tab').forEach((tab, index) => {
+                tab.classList.toggle('active', index === pageIndex);
+            });
+
+            // Update active page
+            document.querySelectorAll('.scrapbook-page').forEach((page, index) => {
+                page.classList.toggle('active', index === pageIndex);
+            });
+
+            currentPage = pageIndex;
+        }
+
+        function openAddMemoryModal() {
+            document.getElementById('modalTitle').textContent = 'Add New Memory';
+            document.getElementById('memoryTitle').value = '';
+            document.getElementById('memoryDate').value = '';
+            document.getElementById('memoryDescription').value = '';
+            document.getElementById('memoryPage').value = currentPage;
+            
+            // Clear image upload
+            document.getElementById('memoryImage').value = '';
+            document.getElementById('memoryImageData').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            
+            editingMemory = null;
+            document.getElementById('memoryModal').style.display = 'block';
+        }
+
+        function editMemory(pageIndex, memoryIndex) {
+            const memory = scrapbookData.pages[pageIndex].memories[memoryIndex];
+            
+            document.getElementById('modalTitle').textContent = 'Edit Memory';
+            document.getElementById('memoryTitle').value = memory.title;
+            document.getElementById('memoryDate').value = memory.date;
+            document.getElementById('memoryDescription').value = memory.description;
+            document.getElementById('memoryPage').value = pageIndex;
+            
+            // Handle image preview for editing
+            if (memory.image) {
+                document.getElementById('memoryImageData').value = memory.image;
+                document.getElementById('previewImg').src = memory.image;
+                document.getElementById('imagePreview').style.display = 'block';
+            } else {
+                document.getElementById('memoryImageData').value = '';
+                document.getElementById('imagePreview').style.display = 'none';
+            }
+            
+            editingMemory = { pageIndex, memoryIndex };
+            document.getElementById('memoryModal').style.display = 'block';
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
+                    document.getElementById('memoryImageData').value = imageData;
+                    document.getElementById('previewImg').src = imageData;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeImage() {
+            document.getElementById('memoryImage').value = '';
+            document.getElementById('memoryImageData').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+        }
+
+        function saveMemory(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('memoryTitle').value;
+            const date = document.getElementById('memoryDate').value;
+            const imageData = document.getElementById('memoryImageData').value;
+            const description = document.getElementById('memoryDescription').value;
+            const pageIndex = parseInt(document.getElementById('memoryPage').value);
+            
+            const memory = { title, date, image: imageData, description };
+            
+            if (editingMemory) {
+                // Update existing memory
+                scrapbookData.pages[editingMemory.pageIndex].memories[editingMemory.memoryIndex] = memory;
+            } else {
+                // Add new memory
+                scrapbookData.pages[pageIndex].memories.push(memory);
+            }
+            
+            renderScrapbook();
+            closeModal();
+            updateStats();
+            autoSave(); // Auto-save after changes
+        }
+
+        function deleteMemory(pageIndex, memoryIndex) {
+            // Create inline confirmation instead of browser confirm
+            const memoryItem = event.target.closest('.memory-item');
+            const originalContent = memoryItem.innerHTML;
+            
+            memoryItem.innerHTML = `
+                <div style="text-align: center; padding: 2rem; background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px;">
+                    <h3 style="color: #856404; margin-bottom: 1rem;">Delete this memory?</h3>
+                    <p style="color: #856404; margin-bottom: 1.5rem;">This action cannot be undone.</p>
+                    <button class="btn btn-danger" onclick="confirmDelete(${pageIndex}, ${memoryIndex})" style="margin-right: 1rem;">Yes, Delete</button>
+                    <button class="btn btn-secondary" onclick="cancelDelete(${pageIndex}, ${memoryIndex}, \`${originalContent.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">Cancel</button>
+                </div>
+            `;
+        }
+
+        function confirmDelete(pageIndex, memoryIndex) {
+            scrapbookData.pages[pageIndex].memories.splice(memoryIndex, 1);
+            renderScrapbook();
+            updateStats();
+            autoSave(); // Auto-save after deletion
+        }
+
+        function cancelDelete(pageIndex, memoryIndex, originalContent) {
+            const memoryItems = document.querySelectorAll('.memory-item');
+            const targetItem = memoryItems[memoryIndex];
+            if (targetItem) {
+                renderScrapbook(); // Just re-render to restore original state
+            }
+        }
+
+        function addNewPage() {
+            const pageNumber = scrapbookData.pages.length + 1;
+            const newPage = {
+                name: `📄 Page ${pageNumber}`,
+                memories: []
+            };
+            
+            scrapbookData.pages.push(newPage);
+            renderScrapbook();
+            updateStats();
+            
+            // Switch to the new page
+            switchPage(scrapbookData.pages.length - 1);
+        }
+
+        function renderScrapbook() {
+            // Render page tabs
+            const tabsContainer = document.getElementById('pageTabs');
+            tabsContainer.innerHTML = '';
+            
+            scrapbookData.pages.forEach((page, index) => {
+                const tab = document.createElement('button');
+                tab.className = `page-tab ${index === currentPage ? 'active' : ''}`;
+                tab.textContent = page.name;
+                tab.onclick = () => switchPage(index);
+                tabsContainer.appendChild(tab);
+            });
+            
+            // Render pages
+            const container = document.querySelector('.scrapbook-container');
+            const existingPages = container.querySelectorAll('.scrapbook-page');
+            existingPages.forEach(page => page.remove());
+            
+            scrapbookData.pages.forEach((page, pageIndex) => {
+                const pageElement = document.createElement('div');
+                pageElement.className = `scrapbook-page ${pageIndex === currentPage ? 'active' : ''}`;
+                pageElement.id = `page-${pageIndex}`;
+                
+                if (page.memories.length === 0) {
+                    pageElement.innerHTML = `
+                        <div class="empty-page">
+                            <h3>This page is waiting for memories!</h3>
+                            <p>Click "Add Memory" to start filling this page with your precious moments.</p>
+                            <button class="btn" onclick="openAddMemoryModal()">➕ Add Your First Memory</button>
+                        </div>
+                    `;
+                } else {
+                    page.memories.forEach((memory, memoryIndex) => {
+                        const memoryElement = document.createElement('div');
+                        memoryElement.className = 'memory-item';
+                        
+                        const photoContent = memory.image ? 
+                            `<img src="${memory.image}" alt="${memory.title}">` : 
+                            (memory.emoji || '📷');
+                        const photoClass = memory.image ? 'memory-photo' : 'memory-photo no-image';
+                        
+                        memoryElement.innerHTML = `
+                            <div class="memory-actions">
+                                <button class="action-btn" onclick="editMemory(${pageIndex}, ${memoryIndex})" title="Edit">✏️</button>
+                                <button class="action-btn" onclick="deleteMemory(${pageIndex}, ${memoryIndex})" title="Delete">🗑️</button>
+                            </div>
+                            <div class="memory-header">
+                                <h3 class="memory-title">${memory.title}</h3>
+                                <span class="memory-date">${memory.date}</span>
+                            </div>
+                            <div class="memory-content">
+                                <div class="${photoClass}">${photoContent}</div>
+                                <div class="memory-text">
+                                    <p class="memory-description">${memory.description}</p>
+                                </div>
+                            </div>
+                        `;
+                        pageElement.appendChild(memoryElement);
+                    });
+                }
+                
+                container.appendChild(pageElement);
+            });
+            
+            // Update page selector in modal
+            const pageSelect = document.getElementById('memoryPage');
+            pageSelect.innerHTML = '';
+            scrapbookData.pages.forEach((page, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = page.name;
+                pageSelect.appendChild(option);
+            });
+        }
+
+        function updateStats() {
+            const totalPages = scrapbookData.pages.length;
+            const totalMemories = scrapbookData.pages.reduce((sum, page) => sum + page.memories.length, 0);
+            
+            document.getElementById('totalPages').textContent = totalPages;
+            document.getElementById('totalMemories').textContent = totalMemories;
+            document.getElementById('lastUpdated').textContent = 'Just now';
+        }
+
+        function exportScrapbook() {
+            try {
+                // Save to localStorage as backup
+                localStorage.setItem('scrapbook-backup', JSON.stringify(scrapbookData));
+                
+                // Create downloadable file
+                const dataStr = JSON.stringify(scrapbookData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `my-scrapbook-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                URL.revokeObjectURL(url);
+                
+                // Show success message
+                showNotification('✅ Scrapbook saved successfully!', 'success');
+            } catch (error) {
+                console.error('Save error:', error);
+                showNotification('❌ Error saving scrapbook. Please try again.', 'error');
+            }
+        }
+
+        function importScrapbook() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const importedData = JSON.parse(e.target.result);
+                            
+                            // Validate the data structure
+                            if (importedData.pages && Array.isArray(importedData.pages)) {
+                                scrapbookData = importedData;
+                                currentPage = 0;
+                                renderScrapbook();
+                                updateStats();
+                                switchPage(0);
+                                showNotification('✅ Scrapbook loaded successfully!', 'success');
+                            } else {
+                                throw new Error('Invalid scrapbook format');
+                            }
+                        } catch (error) {
+                            console.error('Import error:', error);
+                            showNotification('❌ Error loading scrapbook file. Please make sure it\'s a valid scrapbook file.', 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            
+            input.click();
+        }
+
+        function showNotification(message, type = 'info') {
+            // Remove existing notification
+            const existing = document.getElementById('notification');
+            if (existing) existing.remove();
+            
+            // Create notification
+            const notification = document.createElement('div');
+            notification.id = 'notification';
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                border-radius: 10px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+                max-width: 300px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                ${type === 'success' ? 'background: linear-gradient(45deg, #28a745, #20c997);' : 
+                  type === 'error' ? 'background: linear-gradient(45deg, #dc3545, #c82333);' : 
+                  'background: linear-gradient(45deg, #4a90e2, #667eea);'}
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 3000);
+        }
+
+        function autoSave() {
+            try {
+                localStorage.setItem('scrapbook-autosave', JSON.stringify(scrapbookData));
+                localStorage.setItem('scrapbook-autosave-time', new Date().toISOString());
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+            }
+        }
+
+        function loadAutoSave() {
+            try {
+                const autoSaveData = localStorage.getItem('scrapbook-autosave');
+                const autoSaveTime = localStorage.getItem('scrapbook-autosave-time');
+                
+                if (autoSaveData && autoSaveTime) {
+                    const saveTime = new Date(autoSaveTime);
+                    const now = new Date();
+                    const hoursDiff = (now - saveTime) / (1000 * 60 * 60);
+                    
+                    // Only load if saved within last 24 hours
+                    if (hoursDiff < 24) {
+                        const savedData = JSON.parse(autoSaveData);
+                        if (savedData.pages && Array.isArray(savedData.pages)) {
+                            scrapbookData = savedData;
+                            renderScrapbook();
+                            updateStats();
+                            showNotification('📂 Auto-saved scrapbook restored!', 'info');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Auto-load failed:', error);
+            }
+        }
+
+        function clearAllPages() {
+            if (confirm('Are you sure you want to clear all pages? This action cannot be undone.')) {
+                scrapbookData.pages = [
+                    { name: "📖 Page 1", memories: [] }
+                ];
+                currentPage = 0;
+                renderScrapbook();
+                updateStats();
+                switchPage(0);
+            }
+        }
+
+        function closeModal(modalId = 'memoryModal') {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function openColorCustomizer() {
+            document.getElementById('colorModal').style.display = 'block';
+        }
+
+        const colorPresets = {
+            blue: {
+                primary: '#4a90e2',
+                secondary: '#667eea',
+                accent: '#764ba2'
+            },
+            purple: {
+                primary: '#a8edea',
+                secondary: '#fed6e3',
+                accent: '#d299c2'
+            },
+            green: {
+                primary: '#56ab2f',
+                secondary: '#a8e6cf',
+                accent: '#4ecdc4'
+            },
+            orange: {
+                primary: '#ff6b6b',
+                secondary: '#ffecd2',
+                accent: '#fcb69f'
+            },
+            pink: {
+                primary: '#ff9a9e',
+                secondary: '#fecfef',
+                accent: '#fad0c4'
+            },
+            dark: {
+                primary: '#6c757d',
+                secondary: '#434343',
+                accent: '#000000'
+            }
+        };
+
+        function applyPreset(presetName) {
+            const preset = colorPresets[presetName];
+            if (preset) {
+                updateColors(preset.primary, preset.secondary, preset.accent);
+                
+                // Update active preset visual
+                document.querySelectorAll('.preset-option').forEach(option => {
+                    option.classList.toggle('active', option.dataset.preset === presetName);
+                });
+                
+                // Update color inputs
+                document.getElementById('primaryColor').value = preset.primary;
+                document.getElementById('secondaryColor').value = preset.secondary;
+                document.getElementById('accentColor').value = preset.accent;
+            }
+        }
+
+        function updateColors(primary, secondary, accent) {
+            const root = document.documentElement;
+            root.style.setProperty('--primary-color', primary);
+            root.style.setProperty('--secondary-color', secondary);
+            root.style.setProperty('--accent-color', accent);
+            root.style.setProperty('--bg-gradient', `linear-gradient(135deg, ${secondary} 0%, ${accent} 100%)`);
+            root.style.setProperty('--btn-gradient', `linear-gradient(45deg, ${primary}, ${secondary})`);
+            
+            // Update specific elements that use these colors
+            updateElementColors(primary, secondary, accent);
+        }
+
+        function updateElementColors(primary, secondary, accent) {
+            // Update body background
+            document.body.style.background = `linear-gradient(135deg, ${secondary} 0%, ${accent} 100%)`;
+            
+            // Update stats background
+            const stats = document.querySelector('.stats');
+            if (stats) stats.style.background = `linear-gradient(45deg, ${primary}, ${secondary})`;
+            
+            // Update all buttons
+            const buttons = document.querySelectorAll('.btn:not(.btn-secondary):not(.btn-danger)');
+            buttons.forEach(btn => {
+                btn.style.background = `linear-gradient(45deg, ${primary}, ${secondary})`;
+            });
+            
+            // Update nav link hover color
+            const style = document.createElement('style');
+            style.textContent = `
+                .nav-links a:hover { color: ${primary} !important; }
+                .about-text h2 { color: ${primary} !important; }
+                .scrapbook-demo h2 { color: ${primary} !important; }
+                .gallery h2 { color: ${primary} !important; }
+                .contact h2 { color: ${primary} !important; }
+                .memory-title { color: ${primary} !important; }
+                .page-tab.active { background: ${primary} !important; }
+                .slide h3 { color: ${primary} !important; }
+                .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: ${primary} !important; }
+                .dot.active, .dot:hover { background-color: ${primary} !important; }
+                .prev, .next { background: rgba(${hexToRgb(primary)}, 0.8) !important; }
+                .prev:hover, .next:hover { background: ${primary} !important; }
+                .footer-section h3 { color: ${primary} !important; }
+                .social-links a { background: ${primary} !important; }
+                .social-links a:hover { background: ${secondary} !important; }
+                .memory-item:hover { border-color: ${primary} !important; box-shadow: 0 5px 15px rgba(${hexToRgb(primary)}, 0.1) !important; }
+                .color-section h3 { color: ${primary} !important; }
+                .preset-option:hover, .preset-option.active { border-color: ${primary} !important; }
+                .header h1 { color: white !important; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3) !important; }
+                .header p { color: white !important; opacity: 0.9 !important; }
+            `;
+            
+            // Remove existing dynamic styles
+            const existingStyle = document.getElementById('dynamic-colors');
+            if (existingStyle) existingStyle.remove();
+            
+            style.id = 'dynamic-colors';
+            document.head.appendChild(style);
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? 
+                `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : 
+                '74, 144, 226';
+        }
+
+        function updateCustomColors() {
+            const primary = document.getElementById('primaryColor').value;
+            const secondary = document.getElementById('secondaryColor').value;
+            const accent = document.getElementById('accentColor').value;
+            
+            // Clear preset selection
+            document.querySelectorAll('.preset-option').forEach(option => {
+                option.classList.remove('active');
+            });
+        }
+
+        function applyCustomColors() {
+            const primary = document.getElementById('primaryColor').value;
+            const secondary = document.getElementById('secondaryColor').value;
+            const accent = document.getElementById('accentColor').value;
+            
+            updateColors(primary, secondary, accent);
+        }
+
+        function resetToDefault() {
+            applyPreset('blue');
+        }
+
+        function saveColorTheme() {
+            const currentColors = {
+                primary: document.getElementById('primaryColor').value,
+                secondary: document.getElementById('secondaryColor').value,
+                accent: document.getElementById('accentColor').value
+            };
+            
+            localStorage.setItem('scrapbook-colors', JSON.stringify(currentColors));
+            
+            // Show success message
+            const originalText = event.target.textContent;
+            event.target.textContent = '✅ Saved!';
+            setTimeout(() => {
+                event.target.textContent = originalText;
+            }, 2000);
+        }
+
+        function loadSavedColors() {
+            const savedColors = localStorage.getItem('scrapbook-colors');
+            if (savedColors) {
+                const colors = JSON.parse(savedColors);
+                document.getElementById('primaryColor').value = colors.primary;
+                document.getElementById('secondaryColor').value = colors.secondary;
+                document.getElementById('accentColor').value = colors.accent;
+                updateColors(colors.primary, colors.secondary, colors.accent);
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const memoryModal = document.getElementById('memoryModal');
+            const colorModal = document.getElementById('colorModal');
+            if (event.target === memoryModal) {
+                closeModal('memoryModal');
+            } else if (event.target === colorModal) {
+                closeModal('colorModal');
+            }
+        };
+
+        // Contact and Footer Functions
+        function openLiveChat() {
+            showNotification('💬 Live chat feature coming soon! For now, please email us at hello@scrapbook.com', 'info');
+        }
+
+        function subscribeNewsletter() {
+            showNotification('📬 Newsletter subscription coming soon! Thanks for your interest!', 'info');
+        }
+
+        function showHelpModal() {
+            showNotification('📚 Help: Use the toolbar buttons to add memories, customize colors, and save your scrapbook. All data is stored locally in your browser.', 'info');
+        }
+
+        function showPrivacyModal() {
+            showNotification('🔒 Privacy: Your scrapbook data is stored locally in your browser and never sent to external servers. Your memories remain completely private.', 'info');
+        }
+
+        function showTermsModal() {
+            showNotification('📋 Terms: This is a demo scrapbook application. Feel free to use and modify as needed. No warranties provided.', 'info');
+        }
+
+        // Initialize
+        updateStats();
+        loadSavedColors();
+        loadAutoSave();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99351400f36202d6',t:'MTc2MTI2MjgxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
