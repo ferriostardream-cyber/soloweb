@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gradient Video Playlist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #1a1a40, #2d2d80);
+      font-family: 'Poppins', sans-serif;
+      color: white;
+    }
+    .playlist-item.active {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    video {
+      width: 100%;
+      height: auto;
+      border-radius: 0.75rem;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-6">
+
+  <div class="w-full max-w-4xl bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20">
+    <h2 class="text-2xl font-bold mb-4 text-center text-white">🎬 My Video Playlist</h2>
+
+    <!-- Video Display -->
+    <div id="video-display" class="rounded-xl overflow-hidden shadow-md mb-4">
+      <video id="mainVideo" controls>
+        <source src="videos/video1.mp4" type="video/mp4" />
+        Your browser does not support HTML video.
+      </video>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex justify-center gap-4 mb-6">
+      <button id="prevBtn" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg text-white font-semibold transition">⏮ Prev</button>
+      <button id="playPauseBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg text-white font-semibold transition">⏯ Play</button>
+      <button id="nextBtn" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg text-white font-semibold transition">⏭ Next</button>
+    </div>
+
+    <!-- Progress -->
+    <div class="w-full bg-white/20 rounded-full h-3 mb-6">
+      <div id="progress-bar" class="bg-green-400 h-3 rounded-full transition-all duration-300" style="width: 0%;"></div>
+    </div>
+    <div class="flex justify-between text-sm text-white/70 mb-4">
+      <span id="current-time">00:00</span>
+      <span id="total-time">00:00</span>
+    </div>
+
+    <!-- Playlist -->
+    <div id="playlist" class="space-y-2">
+      <div class="playlist-item flex items-center gap-3 p-3 rounded-lg bg-white/5 cursor-pointer transition hover:bg-white/20 active"
+           data-src="videos/video1.mp4">
+        <span>My First Video</span>
+      </div>
+      <div class="playlist-item flex items-center gap-3 p-3 rounded-lg bg-white/5 cursor-pointer transition hover:bg-white/20"
+           data-src="videos/video2.mp4">
+        <span>My Second Video</span>
+      </div>
+      <div class="playlist-item flex items-center gap-3 p-3 rounded-lg bg-white/5 cursor-pointer transition hover:bg-white/20"
+           data-src="videos/video3.mp4">
+        <span>My Third Video</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const mainVideo = document.getElementById("mainVideo");
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const progressBar = document.getElementById("progress-bar");
+    const currentTimeEl = document.getElementById("current-time");
+    const totalTimeEl = document.getElementById("total-time");
+    const playlistItems = document.querySelectorAll(".playlist-item");
+
+    let currentIndex = 0;
+
+    const formatTime = (time) => {
+      const min = Math.floor(time / 60);
+      const sec = Math.floor(time % 60);
+      return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+    };
+
+    function loadVideo(index) {
+      playlistItems.forEach(item => item.classList.remove("active"));
+      playlistItems[index].classList.add("active");
+      mainVideo.src = playlistItems[index].dataset.src;
+      mainVideo.play();
+      playPauseBtn.textContent = "⏸ Pause";
+    }
+
+    playlistItems.forEach((item, index) => {
+      item.addEventListener("click", () => {
+        currentIndex = index;
+        loadVideo(index);
+      });
+    });
+
+    playPauseBtn.addEventListener("click", () => {
+      if (mainVideo.paused) {
+        mainVideo.play();
+        playPauseBtn.textContent = "⏸ Pause";
+      } else {
+        mainVideo.pause();
+        playPauseBtn.textContent = "▶️ Play";
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      currentIndex = (currentIndex + 1) % playlistItems.length;
+      loadVideo(currentIndex);
+    });
+
+    prevBtn.addEventListener("click", () => {
+      currentIndex = (currentIndex - 1 + playlistItems.length) % playlistItems.length;
+      loadVideo(currentIndex);
+    });
+
+    mainVideo.addEventListener("timeupdate", () => {
+      const progress = (mainVideo.currentTime / mainVideo.duration) * 100;
+      progressBar.style.width = `${progress}%`;
+      currentTimeEl.textContent = formatTime(mainVideo.currentTime);
+      totalTimeEl.textContent = isNaN(mainVideo.duration) ? "00:00" : formatTime(mainVideo.duration);
+    });
+
+    mainVideo.addEventListener("ended", () => {
+      currentIndex = (currentIndex + 1) % playlistItems.length;
+      loadVideo(currentIndex);
+    });
+
+    loadVideo(currentIndex);
+  </script>
+
+</body>
+</html>
